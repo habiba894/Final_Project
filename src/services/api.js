@@ -23,7 +23,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      window.location.href = '/auth/login';
     }
     return Promise.reject(error);
   }
@@ -50,6 +51,7 @@ export const apiServices = {
 
   // 🔐 Auth
   login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/signup', userData),
   verifyToken: (token) => api.get('/auth/verify', {
     headers: { Authorization: `Bearer ${token}` }
   }),
