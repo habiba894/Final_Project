@@ -2,10 +2,13 @@ const RoutesList = {
     Login: "/auth/login",
     Signup: "/auth/signup",
     Home: "/home",
-    Country: "/country",
     Profile: "/profile",
-    TripPlan: "/trip-plan",
     Subscription: "/subscription",
+
+    CountryRoute: "/country/:countryName",
+    Country: (countryName) => `/country/${countryName}`,
+    TripPlanRoute: "/country/:countryName/trip-plan",
+    TripPlan: (countryName) => `/country/${countryName}/trip-plan`,
 };
 
 export default RoutesList;

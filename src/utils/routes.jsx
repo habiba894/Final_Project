@@ -24,9 +24,9 @@ export default function AppRoutes() {
 
             <Route element={<Layout />}>
                 <Route path={RoutesList.Home} element={<Home />} />
-                <Route path={RoutesList.TripPlan} element={<TripPlan />} />
                 <Route path={RoutesList.Profile} element={<ProfilePage />} />
-                <Route path={RoutesList.Country} element={<CountryPage />} />
+                <Route path={RoutesList.TripPlanRoute} element={<TripPlan />} />
+                <Route path={RoutesList.CountryRoute} element={<CountryPage />} />
                 <Route path={RoutesList.Subscription} element={<Subscription />} />
             </Route>
 
