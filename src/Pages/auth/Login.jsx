@@ -5,7 +5,7 @@ import { FaArrowRight, FaEnvelope, FaExclamationCircle, FaEye, FaEyeSlash, FaGoo
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import pyramids from "../../assets/signin.jpg";
-import { countryService } from "../../services/api"; // ✅ استدعاء الـ API
+import { apiServices } from "../../services/api"; // ✅ استدعاء الـ API
 import RoutesList from "../../utils/routesList";
 
 // Validation Schema
@@ -52,7 +52,7 @@ const Login = () => {
 
       try {
         // ✅ نادى الـ API الحقيقي
-        const res = await countryService.login({
+        const res = await apiServices.login({
           email: values.email,
           password: values.password,
         });
@@ -132,7 +132,7 @@ const Login = () => {
         {/* الجانب الأيسر: الصورة */}
         <motion.div className="hidden lg:block lg:w-1/2 relative" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
           <div className="absolute inset-0 overflow-hidden rounded-l-3xl">
-            <img src={pyramids} alt="Pyramids" className="w-full h-full object-cover object-center" />
+            <img src={pyramids} alt="Pyramids" className="w-full h-full object-cover object-center" loading="lazy"/>
             <div className="absolute inset-0 bg-gradient-to-br from-orange-600/40 via-amber-600/30 to-transparent" />
             <div className="absolute inset-0 flex flex-col justify-center items-start px-12 text-white text-left">
               <motion.h2 initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.8 }} className="text-3xl drop-shadow-lg tracking-wide font-bold">Discover Egypt</motion.h2>

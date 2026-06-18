@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import img5 from "../../assets/img5.jpg";
+import { useParams } from "react-router-dom";
 import iconlogo from "../../assets/logo.png";
-import { countryService, plansService } from "../../services/api";
+import plan from "../../assets/plan.jpg";
+import { apiServices, plansService } from "../../services/api";
 
-export default function TripPlanPage({ userId, planId, countryName }) {
+export default function TripPlanPage({ userId, planId, }) {
+  const { countryName } = useParams();
+
   // 📊 State Management
   const [tripDays, setTripDays] = useState([
     { id: 1, title: "Arrival & Relax", date: "May 10, 2026", places: [] },
@@ -17,7 +20,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
     hotels: [],
     PopularPlaces: [],
   });
-  
+
   // 🔄 API States
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,15 +30,15 @@ export default function TripPlanPage({ userId, planId, countryName }) {
   // 🌍 Load Suggestions from API when country changes
   useEffect(() => {
     if (!countryName) return;
-    
+
     const loadSuggestions = async () => {
       try {
         const [restaurantsRes, hotelsRes, placesRes] = await Promise.all([
-          countryService.getRestaurants(countryName),
-          countryService.getHotels(countryName),
-          countryService.getPopularPlaces(countryName),
+          apiServices.getRestaurants(countryName),
+          apiServices.getHotels(countryName),
+          apiServices.getPopularPlaces(countryName),
         ]);
-        
+
         setSuggestions({
           restaurants: restaurantsRes.data?.data || restaurantsRes.data || [],
           hotels: hotelsRes.data?.data || hotelsRes.data || [],
@@ -47,7 +50,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
         setSuggestions({ restaurants: [], hotels: [], PopularPlaces: [] });
       }
     };
-    
+
     loadSuggestions();
   }, [countryName]);
 
@@ -60,7 +63,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
           setLoading(true);
           const response = await plansService.getPlanById(activePlanId);
           const plan = response.data?.data || response.data;
-          
+
           if (plan?.days) {
             // Transform API data to match component structure
             const formattedDays = plan.days.map(day => ({
@@ -76,7 +79,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
             }));
             setTripDays(formattedDays);
           }
-          
+
           if (plan?.notes) {
             setNotes(plan.notes);
           }
@@ -88,19 +91,19 @@ export default function TripPlanPage({ userId, planId, countryName }) {
         }
         return;
       }
-      
+
       // If we have userId but no planId, try to get user's plans
       if (userId && !activePlanId) {
         try {
           const response = await plansService.getUserPlans(userId);
           const plans = response.data?.data || response.data || [];
-          
+
           if (plans.length > 0) {
             // Use the most recent plan or the one matching countryName
-            const matchingPlan = plans.find(p => 
+            const matchingPlan = plans.find(p =>
               p.country?.toLowerCase() === countryName?.toLowerCase()
             ) || plans[0];
-            
+
             setActivePlanId(matchingPlan.id);
             // The first useEffect will trigger and load this plan
             return;
@@ -109,11 +112,11 @@ export default function TripPlanPage({ userId, planId, countryName }) {
           console.error("❌ Failed to load user plans:", err);
         }
       }
-      
+
       // No plan found - just hide loading
       setLoading(false);
     };
-    
+
     loadPlanData();
   }, [activePlanId, userId, countryName]);
 
@@ -135,7 +138,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
         })),
         notes: [],
       });
-      
+
       const newPlanId = response.data?.data?.id || response.data?.id;
       setActivePlanId(newPlanId);
       return newPlanId;
@@ -150,13 +153,13 @@ export default function TripPlanPage({ userId, planId, countryName }) {
   // 📝 Notes Handlers
   const handleAddNote = async () => {
     if (newNote.trim() === "") return;
-    
+
     const noteToAdd = newNote.trim();
-    
+
     // ✅ Optimistic UI Update
     setNotes(prev => [...prev, noteToAdd]);
     setNewNote("");
-    
+
     // 🌐 Sync with API
     if (activePlanId) {
       try {
@@ -180,11 +183,11 @@ export default function TripPlanPage({ userId, planId, countryName }) {
 
   const handleRemoveNote = async (index) => {
     // const noteToRemove = notes[index];
-    
+
     // ✅ Optimistic UI Update
     const newNotes = notes.filter((_, i) => i !== index);
     setNotes(newNotes);
-    
+
     // 🌐 Sync with API
     if (activePlanId) {
       try {
@@ -201,10 +204,10 @@ export default function TripPlanPage({ userId, planId, countryName }) {
   const handleAddToTrip = async (item, activeCategory, dayId) => {
     const categoryMap = {
       restaurants: "Restaurant",
-      hotels: "Hotel", 
+      hotels: "Hotel",
       PopularPlaces: "Popular Place"
     };
-    
+
     const newPlace = {
       ...item,
       uniqueId: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -214,21 +217,21 @@ export default function TripPlanPage({ userId, planId, countryName }) {
     };
 
     // ✅ Optimistic UI Update - Add to local state immediately
-    setTripDays(prevDays => prevDays.map(day => 
-      day.id === dayId 
-        ? { ...day, places: [...day.places, newPlace] } 
+    setTripDays(prevDays => prevDays.map(day =>
+      day.id === dayId
+        ? { ...day, places: [...day.places, newPlace] }
         : day
     ));
 
     // 🌐 Sync with API
     try {
       let currentPlanId = activePlanId;
-      
+
       // Create plan if doesn't exist
       if (!currentPlanId) {
         currentPlanId = await createNewPlan();
       }
-      
+
       // Prepare place data for API
       const placePayload = {
         name: item.name,
@@ -240,45 +243,45 @@ export default function TripPlanPage({ userId, planId, countryName }) {
         note: "",
         // Add any other fields your backend expects
       };
-      
+
       const response = await plansService.addPlaceToPlan(currentPlanId, placePayload);
-      
+
       // 🔄 Update the place with real ID from backend
       const realPlaceId = response.data?.data?.id || response.data?.id;
       if (realPlaceId) {
-        setTripDays(prevDays => prevDays.map(day => 
-          day.id === dayId 
-            ? { 
-                ...day, 
-                places: day.places.map(p => 
-                  p.uniqueId === newPlace.uniqueId 
-                    ? { ...p, uniqueId: realPlaceId, id: realPlaceId } 
-                    : p
-                ) 
-              } 
+        setTripDays(prevDays => prevDays.map(day =>
+          day.id === dayId
+            ? {
+              ...day,
+              places: day.places.map(p =>
+                p.uniqueId === newPlace.uniqueId
+                  ? { ...p, uniqueId: realPlaceId, id: realPlaceId }
+                  : p
+              )
+            }
             : day
         ));
       }
-      
+
     } catch (err) {
       console.error("❌ Failed to add place to plan:", err);
-      
+
       // 🔙 Rollback: Remove the temp place from UI
-      setTripDays(prevDays => prevDays.map(day => 
-        day.id === dayId 
-          ? { ...day, places: day.places.filter(p => p.uniqueId !== newPlace.uniqueId) } 
+      setTripDays(prevDays => prevDays.map(day =>
+        day.id === dayId
+          ? { ...day, places: day.places.filter(p => p.uniqueId !== newPlace.uniqueId) }
           : day
       ));
-      
+
       alert("Failed to add to trip. Please check your connection and try again.");
     }
   };
 
   const handleRemovePlace = async (uniqueId, dayId) => {
     // ✅ Optimistic UI Update
-    setTripDays(prevDays => prevDays.map(day => 
-      day.id === dayId 
-        ? { ...day, places: day.places.filter(p => p.uniqueId !== uniqueId) } 
+    setTripDays(prevDays => prevDays.map(day =>
+      day.id === dayId
+        ? { ...day, places: day.places.filter(p => p.uniqueId !== uniqueId) }
         : day
     ));
 
@@ -299,7 +302,7 @@ export default function TripPlanPage({ userId, planId, countryName }) {
       if (day.id === dayId) {
         return {
           ...day,
-          places: day.places.map(p => 
+          places: day.places.map(p =>
             p.uniqueId === uniqueId ? { ...p, note: updatedText } : p
           ),
         };
@@ -351,13 +354,13 @@ export default function TripPlanPage({ userId, planId, countryName }) {
           <h2 className="text-2xl font-bold text-gray-800 mb-3">Oops! Something went wrong</h2>
           <p className="text-gray-500 mb-6">{error}</p>
           <div className="flex gap-3 justify-center">
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="bg-[#0f6d79] text-white px-6 py-3 rounded-2xl font-semibold hover:bg-opacity-90 transition shadow-md"
             >
               Try Again
             </button>
-            <button 
+            <button
               onClick={() => { setError(null); setLoading(false); }}
               className="bg-gray-100 text-gray-700 px-6 py-3 rounded-2xl font-semibold hover:bg-gray-200 transition"
             >
@@ -376,29 +379,29 @@ export default function TripPlanPage({ userId, planId, countryName }) {
         <TripBanner countryName={countryName} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8 items-stretch">
-          
-          <AddToTripSidebar 
-            suggestions={suggestionsData} 
-            onAdd={handleAddToTrip} 
-            tripDays={tripDays} 
+
+          <AddToTripSidebar
+            suggestions={suggestionsData}
+            onAdd={handleAddToTrip}
+            tripDays={tripDays}
             isLoading={!suggestionsData.restaurants.length && !suggestionsData.hotels.length}
           />
-          
+
           <TripMapCard location={countryName || "Paris"} />
-          
+
           {/* 📝 Trip Notes Section */}
           <div className="bg-white rounded-[30px] shadow-lg p-6 flex flex-col h-full border border-gray-50">
             <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-3xl font-bold text-gray-700">Trip Notes</h2>
               {isSaving && <span className="text-xs text-orange-500 font-medium">Saving...</span>}
             </div>
-            
+
             <div className="flex-1 overflow-y-auto space-y-3 mb-6 pr-2 custom-scrollbar" style={{ maxHeight: "350px" }}>
               {notes.map((note, index) => (
                 <div key={index} className="bg-[#f7f4fa] rounded-2xl p-4 text-gray-600 flex justify-between items-start group">
                   <span className="leading-relaxed">✍️ {note}</span>
-                  <button 
-                    onClick={() => handleRemoveNote(index)} 
+                  <button
+                    onClick={() => handleRemoveNote(index)}
                     className="text-gray-300 hover:text-orange-500 transition ml-2 opacity-0 group-hover:opacity-100"
                     aria-label="Remove note"
                   >
@@ -426,8 +429,8 @@ export default function TripPlanPage({ userId, planId, countryName }) {
                 placeholder="Write something important... (Ctrl+Enter to save)"
                 className="w-full bg-[#f7f4fa] rounded-2xl px-4 py-3 outline-none border border-transparent focus:border-[#0f6d79] transition resize-none h-24 mb-3"
               />
-              <button 
-                onClick={handleAddNote} 
+              <button
+                onClick={handleAddNote}
                 disabled={!newNote.trim() || isSaving}
                 className="w-full bg-[#0f6d79] text-white py-3 rounded-2xl font-bold hover:bg-opacity-90 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -446,11 +449,11 @@ export default function TripPlanPage({ userId, planId, countryName }) {
               {tripDays
                 .filter(day => day.places.length > 0)
                 .map((day) => (
-                  <DaySection 
-                    key={day.id} 
-                    day={day} 
-                    onRemove={handleRemovePlace} 
-                    onUpdatePlaceNote={handleUpdatePlaceNote} 
+                  <DaySection
+                    key={day.id}
+                    day={day}
+                    onRemove={handleRemovePlace}
+                    onUpdatePlaceNote={handleUpdatePlaceNote}
                   />
                 ))}
             </div>
@@ -469,11 +472,11 @@ function EmptyTripState({ iconlogo, countryName }) {
   return (
     <div className="bg-white rounded-[35px] shadow-lg p-12 text-center min-h-[500px] flex flex-col items-center justify-center border border-gray-100">
       <div className="w-48 h-40 rounded-full flex items-center justify-center mb-8">
-        <img src={iconlogo} alt="Plane Icon" className="w-60 h-40 object-contain" />
+        <img loading="lazy" src={iconlogo} alt="Plane Icon" className="w-60 h-40 object-contain" />
       </div>
       <h2 className="text-5xl font-bold text-gray-700 mb-6">Start Planning Your Trip</h2>
       <p className="text-gray-500 text-xl max-w-2xl leading-relaxed mb-10">
-        Your trip plan{countryName ? ` to ${countryName}` : ""} is currently empty. 
+        Your trip plan{countryName ? ` to ${countryName}` : ""} is currently empty.
         Start adding hotels, restaurants, and popular places from the sidebar to build your personalized travel experience.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-4">
@@ -494,12 +497,12 @@ function EmptyTripState({ iconlogo, countryName }) {
 function TripBanner({ countryName }) {
   return (
     <div className="relative rounded-[35px] overflow-hidden shadow-2xl h-[420px] w-full">
-      <img src={img5} alt="Travel Banner" className="w-full h-full object-cover" />
+      <img loading="lazy" src={plan} alt="Travel Banner" className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0f6d79]/80 via-black/40 to-orange-500/30" />
       <div className="absolute inset-0 flex flex-col justify-center px-10 z-10 text-white">
         <div className="max-w-2xl">
           <span className="bg-orange-500/60 px-5 py-2 rounded-full text-sm font-semibold tracking-wide inline-block mb-6">
-             Smart Travel Planner
+            Smart Travel Planner
           </span>
           <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
             Build Your Dream Trip{countryName && <span className="block text-3xl md:text-4xl mt-2 font-normal opacity-90">to {countryName}</span>}
@@ -508,15 +511,15 @@ function TripBanner({ countryName }) {
             Add hotels, restaurants, popular places, and activities to create your personalized travel experience.
           </p>
         </div>
-        <div className="flex flex-wrap gap-4 mt-8"> 
-          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"> 
-             Hotels 
-          </div> 
-          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"> 
-             Restaurants 
-          </div> 
-          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"> 
-             Popular Places 
+        <div className="flex flex-wrap gap-4 mt-8">
+          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            Hotels
+          </div>
+          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            Restaurants
+          </div>
+          <div className="bg-white/20 backdrop-blur-md px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            Popular Places
           </div>
         </div>
       </div>
@@ -538,12 +541,12 @@ function DaySection({ day, onRemove, onUpdatePlaceNote }) {
       </div>
       <div className="space-y-6 ml-6 border-l-2 border-dashed border-gray-300 pl-10">
         {day.places.map((place) => (
-          <PlaceCard 
-            key={place.uniqueId} 
-            place={place} 
-            dayId={day.id} 
-            onRemove={onRemove} 
-            onUpdatePlaceNote={onUpdatePlaceNote} 
+          <PlaceCard
+            key={place.uniqueId}
+            place={place}
+            dayId={day.id}
+            onRemove={onRemove}
+            onUpdatePlaceNote={onUpdatePlaceNote}
           />
         ))}
       </div>
@@ -563,12 +566,12 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
   return (
     <div className="bg-white rounded-3xl shadow-md p-5 flex flex-col md:flex-row gap-5 hover:shadow-xl transition border border-gray-50 group">
       <div className="relative">
-        <img src={place.image} alt={place.name} className="w-full md:w-36 h-36 object-cover rounded-2xl" />
+        <img loading="lazy" src={place.image} alt={place.name} className="w-full md:w-36 h-36 object-cover rounded-2xl" />
         <span className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
           {place.category}
         </span>
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
@@ -578,9 +581,9 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
             </p>
             <p className="text-gray-600 mt-3 text-sm leading-relaxed">{place.details}</p>
           </div>
-          
-          <button 
-            onClick={() => onRemove(place.uniqueId, dayId)} 
+
+          <button
+            onClick={() => onRemove(place.uniqueId, dayId)}
             className="text-gray-300 hover:text-red-500 hover:scale-110 transition p-2 rounded-full hover:bg-red-50"
             aria-label="Remove from trip"
             title="Remove from trip"
@@ -590,7 +593,7 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
             </svg>
           </button>
         </div>
-        
+
         {/* 📝 Editable Note Section */}
         <div className="mt-5">
           {isEditing ? (
@@ -603,14 +606,14 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
                 autoFocus
               />
               <div className="flex gap-2 justify-end">
-                <button 
-                  onClick={() => { setIsEditing(false); setTempNote(place.note || ""); }} 
+                <button
+                  onClick={() => { setIsEditing(false); setTempNote(place.note || ""); }}
                   className="text-gray-400 hover:text-gray-600 text-sm font-semibold px-3 py-1"
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleSave} 
+                <button
+                  onClick={handleSave}
                   className="bg-[#0f6d79] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-opacity-90 transition"
                 >
                   Save Note
@@ -618,7 +621,7 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
               </div>
             </div>
           ) : (
-            <div 
+            <div
               onClick={() => setIsEditing(true)}
               className="bg-[#f7f4fa] rounded-2xl px-4 py-3 text-gray-600 text-sm cursor-pointer hover:bg-orange-50 transition border border-transparent hover:border-orange-200 relative group/note"
             >
@@ -639,20 +642,20 @@ function PlaceCard({ place, onRemove, dayId, onUpdatePlaceNote }) {
 function AddToTripSidebar({ suggestions, onAdd, tripDays, isLoading }) {
   const [activeCategory, setActiveCategory] = useState("restaurants");
   const [selectedDay, setSelectedDay] = useState(1);
-  
+
   const categoryConfig = {
     restaurants: { label: "Restaurants", color: "orange", bgColor: "bg-orange-50", activeBg: "bg-orange-600" },
     hotels: { label: "Hotels", color: "cyan", bgColor: "bg-cyan-50", activeBg: "bg-[#0f6d79]" },
     PopularPlaces: { label: "Places", color: "green", bgColor: "bg-green-50", activeBg: "bg-green-600" }
   };
-  
+
   const currentItems = suggestions?.[activeCategory] || [];
   const config = categoryConfig[activeCategory];
 
   return (
     <div className="bg-white rounded-[30px] shadow-lg px-4 py-6 h-full border border-gray-50 flex flex-col">
       <h2 className="text-3xl font-bold text-orange-600 mb-6">Add to Trip</h2>
-      
+
       <select
         value={selectedDay}
         onChange={(e) => setSelectedDay(Number(e.target.value))}
@@ -664,28 +667,27 @@ function AddToTripSidebar({ suggestions, onAdd, tripDays, isLoading }) {
           </option>
         ))}
       </select>
-      
+
       <div className="flex gap-2 mb-6 flex-wrap">
         {Object.entries(categoryConfig).map(([key, cfg]) => (
-          <button 
+          <button
             key={key}
-            onClick={() => setActiveCategory(key)} 
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-              activeCategory === key 
-                ? `${cfg.activeBg} text-white shadow-md` 
-                : `${cfg.bgColor} text-${cfg.color}-600 hover:bg-${cfg.color}-100`
-            }`}
+            onClick={() => setActiveCategory(key)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition ${activeCategory === key
+              ? `${cfg.activeBg} text-white shadow-md`
+              : `${cfg.bgColor} text-${cfg.color}-600 hover:bg-${cfg.color}-100`
+              }`}
           >
             {cfg.label}
           </button>
         ))}
       </div>
-      
+
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="text-xs text-gray-400 mb-3 font-medium">
           {currentItems.length} {config.label.toLowerCase()} found
         </div>
-        
+
         <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-4">
           {isLoading ? (
             // 🔄 Loading Skeleton
@@ -700,29 +702,32 @@ function AddToTripSidebar({ suggestions, onAdd, tripDays, isLoading }) {
               </div>
             ))
           ) : currentItems.length > 0 ? (
-            currentItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="bg-[#f9fafb] rounded-3xl p-3 flex items-center gap-4 border border-gray-100 hover:border-orange-200 hover:shadow-md transition group"
-              >
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
-                  loading="lazy"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-800 text-sm truncate">{item.name}</h3>
-                  <p className="text-[10px] text-gray-500 truncate mb-2">📍 {item.location}</p>
-                  <button 
-                    onClick={() => onAdd(item, activeCategory, selectedDay)}
-                    className="text-orange-600 font-bold text-xs bg-white border border-orange-100 px-3 py-1.5 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition shadow-sm"
-                  >
-                    + Add to Day {selectedDay}
-                  </button>
+            currentItems.map((item, index) => {
+              return (
+                <div
+                  key={index}
+                  className="bg-[#f9fafb] rounded-3xl p-3 flex items-center gap-4 border border-gray-100 hover:border-orange-200 hover:shadow-md transition group"
+                >
+                  <img
+                    loading="lazy"
+                    src={item.photo}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded-xl "
+                    loading="lazy"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-800 text-sm truncate">{item.name}</h3>
+                    <p className="text-[10px] text-gray-500 truncate mb-2">📍 {item.location}</p>
+                    <button
+                      onClick={() => onAdd(item, activeCategory, selectedDay)}
+                      className="text-orange-600 font-bold text-xs bg-white border border-orange-100 px-3 py-1.5 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition shadow-sm"
+                    >
+                      + Add to Day {selectedDay}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           ) : (
             <div className="text-center text-gray-400 py-8">
               <p className="text-2xl mb-2">🔍</p>
@@ -741,18 +746,18 @@ function TripMapCard({ location }) {
     <div className="bg-white rounded-[30px] shadow-lg overflow-hidden h-full border border-gray-50 min-h-[400px] flex flex-col">
       <div className="p-6 border-b border-gray-50">
         <h2 className="text-2xl font-bold text-[#0f6d79] flex items-center gap-2">
-           Trip Map
+          Trip Map
           {location && <span className="text-sm font-normal text-gray-500">• {location}</span>}
         </h2>
       </div>
       <div className="flex-1 w-full min-h-[350px]">
-        <iframe 
-          title="Trip Map" 
-          className="w-full h-full" 
-          style={{ border: 0 }} 
-          loading="lazy" 
-          allowFullScreen 
-          src={`https://maps.google.com/maps?q=${encodeURIComponent(location || "Paris")}&z=12&output=embed`} 
+        <iframe
+          title="Trip Map"
+          className="w-full h-full"
+          style={{ border: 0 }}
+          loading="lazy"
+          allowFullScreen
+          src={`https://maps.google.com/maps?q=${encodeURIComponent(location || "Paris")}&z=12&output=embed`}
         />
       </div>
     </div>

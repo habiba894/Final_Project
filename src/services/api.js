@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
@@ -30,28 +30,28 @@ api.interceptors.response.use(
 );
 
 // 🌍 Country Service
-export const countryService = {
-  getCountries: (searchTerm) => 
+export const apiServices = {
+  getCountries: (searchTerm) =>
     api.get('/countries', { params: searchTerm ? { search: searchTerm } : {} }),
-  getCountryByName: (name) => 
+  getCountryByName: (name) =>
     api.get(`/countries/${encodeURIComponent(name)}`),
-  getWeather: (countryName) => 
+  getWeather: (countryName) =>
     api.get('/weather', { params: { country: countryName } }),
-  getCurrencyRates: (baseCode) => 
+  getCurrencyRates: (baseCode) =>
     api.get(`/currency/rates/${encodeURIComponent(baseCode)}`),
-  convertCurrency: (amount, from, to) => 
+  convertCurrency: (amount, from, to) =>
     api.get('/currency/convert', { params: { amount, from, to } }),
-  getRestaurants: (country) => 
+  getRestaurants: (country) =>
     api.get('/restaurants', { params: { country } }),
-  getHotels: (country) => 
+  getHotels: (country) =>
     api.get('/hotels', { params: { country } }),
-  getPopularPlaces: (country) => 
+  getPopularPlaces: (country) =>
     api.get('/popular-places', { params: { country } }),
-  
+
   // 🔐 Auth
   login: (credentials) => api.post('/auth/login', credentials),
-  verifyToken: (token) => api.get('/auth/verify', { 
-    headers: { Authorization: `Bearer ${token}` } 
+  verifyToken: (token) => api.get('/auth/verify', {
+    headers: { Authorization: `Bearer ${token}` }
   }),
 };
 
@@ -66,4 +66,34 @@ export const plansService = {
   removePlaceFromPlan: (planId, placeId) => api.delete(`/plans/${planId}/places/${placeId}`),
 };
 
-export default { countryService, plansService };
+export const profileService = {
+  getUserProfile: async () => {
+    const response = await api.get("/profile");
+    return response.data;
+  },
+
+  updateUserProfile: async (userData) => {
+    const response = await api.put("/profile", userData);
+    return response.data;
+  },
+
+  getUserTrips: async () => {
+    const response = await api.get("/profile/plans");
+    return response.data;
+  },
+
+  getFavoritePlaces: async () => {
+    const response = await api.get("/profile/favorites");
+    return response.data;
+  },
+
+  toggleFavoritePlace: async (placeId) => {
+    const response = await api.post("/profile/favorites", { placeId, });
+    return response.data;
+  },
+
+  deleteFavoritePlace: async (placeId) => {
+    const response = await api.delete(`/profile/favorites/${placeId}`);
+    return response.data;
+  }
+}
