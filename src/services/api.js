@@ -42,12 +42,16 @@ export const apiServices = {
     api.get(`/currency/rates/${encodeURIComponent(baseCode)}`),
   convertCurrency: (amount, from, to) =>
     api.get('/currency/convert', { params: { amount, from, to } }),
-  getRestaurants: (country) =>
-    api.get('/restaurants', { params: { country } }),
-  getHotels: (country) =>
-    api.get('/hotels', { params: { country } }),
-  getPopularPlaces: (country) =>
-    api.get('/popular-places', { params: { country } }),
+  getCountryDetails: async (name) => {
+    const response = await api.get(`/countries/${encodeURIComponent(name)}`);
+    return response.data;
+  },
+  // getRestaurants: (country) =>
+  //   api.get('/restaurants', { params: { country } }),
+  // getHotels: (country) =>
+  //   api.get('/hotels', { params: { country } }),
+  // getPopularPlaces: (country) =>
+  //   api.get('/popular-places', { params: { country } }),
 
   // 🔐 Auth
   login: (credentials) => api.post('/auth/login', credentials),
