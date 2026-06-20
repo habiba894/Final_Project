@@ -4,6 +4,7 @@ const RoutesList = {
     Home: "/home",
     Profile: "/profile",
     Subscription: "/subscription",
+    Premium: "/premium",
 
     CountryRoute: "/country/:countryName",
     Country: (countryName) => `/country/${countryName}`,

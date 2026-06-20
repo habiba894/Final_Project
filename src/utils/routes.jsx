@@ -12,6 +12,7 @@ const CountryPage = lazy(() => import("../pages/country/Country"));
 const ProfilePage = lazy(() => import("../pages/profile/Profile"));
 const TripPlan = lazy(() => import("../pages/trip-plan/TripPlan"));
 const Subscription = lazy(() => import("../pages/subscription/Subscriptionpage"));
+const PremiumPage = lazy(() => import("../pages/premium/Premium"));
 
 export default function AppRoutes() {
     return (
@@ -28,6 +29,11 @@ export default function AppRoutes() {
                 <Route path={RoutesList.Profile} element={
                     <ProtectedRoute>
                         <ProfilePage />
+                    </ProtectedRoute>
+                } />
+                <Route path={RoutesList.Premium} element={
+                    <ProtectedRoute>
+                        <PremiumPage />
                     </ProtectedRoute>
                 } />
                 <Route path={RoutesList.TripPlanRoute} element={<TripPlan />} />
