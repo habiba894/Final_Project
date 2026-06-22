@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-const CTASection = ({ currentCountry = "Egypt" }) => {
+const CTASection = ({ currentCountry = "egypt" }) => {
   const ctaData = {
-    Egypt: {
+    egypt: {
       title: "Ready to explore the land of pharaohs?",
       subtitle: "Book your Egyptian adventure today and walk through history",
       image:
@@ -13,7 +13,7 @@ const CTASection = ({ currentCountry = "Egypt" }) => {
       btnPrimary: "Explore Egypt",
       btnSecondary: "View Packages",
     },
-    France: {
+    france: {
       title: "Ready to fall in love with Paris?",
       subtitle:
         "Experience romance, art, and world-class cuisine in France",
@@ -23,7 +23,7 @@ const CTASection = ({ currentCountry = "Egypt" }) => {
       btnPrimary: "Explore France",
       btnSecondary: "View Packages",
     },
-    Turkey: {
+    turkey: {
       title: "Ready to discover East meets West?",
       subtitle:
         "Explore Turkey's rich culture, stunning landscapes, and legendary hospitality",
@@ -34,9 +34,7 @@ const CTASection = ({ currentCountry = "Egypt" }) => {
       btnSecondary: "View Packages",
     },
   };
-
-  const data = ctaData[currentCountry] || ctaData.Egypt;
-
+  const data = ctaData[currentCountry] || ctaData.egypt;
   useEffect(() => {
     AOS.init({
       duration: 1000,

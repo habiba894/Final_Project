@@ -567,7 +567,11 @@ function TripCard({ trip }) {
 // ======================================================
 
 function FavoriteCard({ item, onRemove }) {
+  console.log(item)
   return (
+    <a  href={item.link || item.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer">
     <div className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 border border-gray-100 flex flex-col text-left">
       <div className="relative overflow-hidden h-48">
         <img
@@ -597,5 +601,6 @@ function FavoriteCard({ item, onRemove }) {
         )}
       </div>
     </div>
+    </a>
   );
 }
