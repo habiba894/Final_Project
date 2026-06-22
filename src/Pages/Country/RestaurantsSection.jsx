@@ -24,6 +24,7 @@ const RestaurantsSection = ({ restaurants, countryName, loading }) => {
         name: restaurant.name,
         image: restaurant.image,
         country: countryName,
+        instagram: restaurant.instagram
       });
     }
   };

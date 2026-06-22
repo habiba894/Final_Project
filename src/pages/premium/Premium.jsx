@@ -128,18 +128,18 @@ const Premium = () => {
           {!isPremium && <LockedOverlay onUpgrade={handleUpgrade} />}
         </div>
 
-        <div className="relative">
+        {/* <div className="relative">
           <div className={!isPremium ? "pointer-events-none blur-[3px] select-none" : ""}>
             <TravelQuestionnaire onOpenModal={() => setModalOpen(true)} />
           </div>
           {!isPremium && <LockedOverlay onUpgrade={handleUpgrade} />}
-        </div>
+        </div> */}
 
         <UpgradeBanner onUpgrade={handleUpgrade} />
       </div>
 
       {/* Popup stepper modal (Trip Planner → Generate Plan, or questionnaire "Open full stepper") */}
-      <QuestionnaireModal
+     /* <QuestionnaireModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onComplete={() => showToast("✅ Your travel profile is ready!")}
